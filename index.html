@@ -150,7 +150,7 @@
                     <span>Master Volume</span>
                     <span id="master-vol-val">100%</span>
                 </label>
-                <input type="range" id="master-vol" min="0" max="1" step="0.01" value="1" class="w-full h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-teal-400">
+                <input type="range" id="master-vol" min="0" max="1" step="0.01" value="1" class="w-full h-1 bg-white/20 rounded-[10px] appearance-none cursor-pointer accent-teal-400">
             </div>
         </div>
         
@@ -214,30 +214,61 @@
         tabBtnBasic.addEventListener('click', () => switchTab(tabBtnBasic, tabBtnPersonal, tabBasic, tabPersonal));
         tabBtnPersonal.addEventListener('click', () => switchTab(tabBtnPersonal, tabBtnBasic, tabPersonal, tabBasic));
 
-        // --- Load Saved Custom Sounds ---
-        function loadCustomSounds() {
+        // --- IndexedDB for Unlimited Storage ---
+        const DB_NAME = 'vyribleDB';
+        const DB_VERSION = 1;
+        let db;
+
+        function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+                request.onerror = (e) => reject("IndexedDB error");
+                request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+                request.onupgradeneeded = (e) => {
+                    let db = e.target.result;
+                    if (!db.objectStoreNames.contains('sounds')) {
+                        db.createObjectStore('sounds', { keyPath: 'id' });
+                    }
+                };
+            });
+        }
+
+        async function loadCustomSounds() {
             try {
-                const saved = localStorage.getItem('vyrible_custom_sounds');
-                if (saved) {
-                    CustomSounds = JSON.parse(saved);
-                    Object.values(CustomSounds).forEach(sound => {
-                        renderLibraryItem(sound, 'personal-library-list', true);
+                await initDB();
+                const transaction = db.transaction(['sounds'], 'readonly');
+                const store = transaction.objectStore('sounds');
+                const request = store.getAll();
+
+                request.onsuccess = (e) => {
+                    const sounds = e.target.result;
+                    sounds.forEach(sound => {
+                        const audioUrl = URL.createObjectURL(sound.audioBlob);
+                        let iconData = sound.icon;
+                        if (iconData.type === 'image' && sound.imageBlob) {
+                            iconData.value = URL.createObjectURL(sound.imageBlob);
+                        }
+                        CustomSounds[sound.id] = { ...sound, url: audioUrl, icon: iconData };
+                        renderLibraryItem(CustomSounds[sound.id], 'personal-library-list', true);
                     });
-                }
+                };
             } catch(e) {
-                console.error("Failed to load saved sounds", e);
+                console.error("Failed to load DB sounds", e);
             }
         }
 
-        function saveCustomSounds() {
-            try {
-                localStorage.setItem('vyrible_custom_sounds', JSON.stringify(CustomSounds));
-            } catch(e) {
-                console.error("Storage limit exceeded!", e);
-                alert("Storage limit exceeded! Cannot save this file. Try a smaller file.");
-                return false;
-            }
-            return true;
+        function saveCustomSoundToDB(soundData) {
+            if(!db) return;
+            const transaction = db.transaction(['sounds'], 'readwrite');
+            const store = transaction.objectStore('sounds');
+            store.put(soundData);
+        }
+
+        function deleteCustomSoundFromDB(id) {
+            if(!db) return;
+            const transaction = db.transaction(['sounds'], 'readwrite');
+            const store = transaction.objectStore('sounds');
+            store.delete(id);
         }
 
         // --- Custom Sound Form ---
@@ -257,14 +288,6 @@
             });
         });
 
-        // Helper to convert file to base64
-        const fileToBase64 = file => new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = error => reject(error);
-        });
-
         document.getElementById('add-custom-btn').addEventListener('click', async () => {
             const name = document.getElementById('custom-name').value || 'Custom Sound';
             const audioFile = document.getElementById('custom-audio').files[0];
@@ -277,29 +300,42 @@
             btn.disabled = true;
 
             try {
-                const audioBase64 = await fileToBase64(audioFile);
                 const id = 'custom_' + Date.now();
-                
                 let iconData = { type: 'emoji', value: '🎵' };
+                let imageBlob = null;
+
                 if (isEmoji) {
                     iconData.value = document.getElementById('custom-emoji').value || '🎵';
                 } else {
                     const imageFile = document.getElementById('custom-image').files[0];
                     if(imageFile) {
-                        const imageBase64 = await fileToBase64(imageFile);
-                        iconData = { type: 'image', value: imageBase64 };
+                        iconData = { type: 'image', value: '' }; 
+                        imageBlob = imageFile;
                     }
                 }
 
-                CustomSounds[id] = { id: id, url: audioBase64, icon: iconData, label: name, color: 'bg-purple-600' };
-                
-                if (saveCustomSounds()) {
-                    renderLibraryItem(CustomSounds[id], 'personal-library-list', true);
-                    document.getElementById('custom-name').value = '';
-                    document.getElementById('custom-audio').value = '';
-                } else {
-                    delete CustomSounds[id]; // Revert if save failed
+                // حفظ الملف بصيغته الأصلية بدون تحويله لـ Base64 لتفادي حدود التخزين
+                const dbRecord = {
+                    id: id,
+                    label: name,
+                    color: 'bg-purple-600',
+                    audioBlob: audioFile,
+                    icon: { type: iconData.type, value: iconData.value },
+                    imageBlob: imageBlob
+                };
+                saveCustomSoundToDB(dbRecord);
+
+                const audioUrl = URL.createObjectURL(audioFile);
+                if (iconData.type === 'image' && imageBlob) {
+                    iconData.value = URL.createObjectURL(imageBlob);
                 }
+
+                CustomSounds[id] = { id: id, url: audioUrl, icon: iconData, label: name, color: 'bg-purple-600' };
+                
+                renderLibraryItem(CustomSounds[id], 'personal-library-list', true);
+                document.getElementById('custom-name').value = '';
+                document.getElementById('custom-audio').value = '';
+                
             } catch (err) {
                 console.error(err);
                 alert('Error processing file.');
@@ -363,12 +399,12 @@
             // Remove from library and storage
             delete CustomSounds[id];
             document.getElementById(`lib-item-${id}`).remove();
-            saveCustomSounds();
+            deleteCustomSoundFromDB(id);
         }
 
         // Initialize libraries
         BasicSounds.forEach(sound => renderLibraryItem(sound, 'basic-library-list', false));
-        loadCustomSounds();
+        loadCustomSounds(); // Loading from DB
 
         // --- Core Audio Engine ---
         function initAudioEngine() {
@@ -541,7 +577,7 @@
                     <button class="text-gray-400 hover:text-red-400 text-xs transition delete-btn p-1 bg-white/5 rounded-[10px]">Remove</button>
                 </div>
                 <div class="flex items-center gap-3">
-                    <input type="range" min="0" max="3" step="0.01" value="1.5" class="flex-1 h-1 bg-white/20 rounded-lg appearance-none cursor-pointer accent-teal-400 source-vol">
+                    <input type="range" min="0" max="3" step="0.01" value="1.5" class="flex-1 h-1 bg-white/20 rounded-[10px] appearance-none cursor-pointer accent-teal-400 source-vol">
                     <span class="text-[10px] text-gray-400 uppercase">Vol</span>
                 </div>
             `;

@@ -2,181 +2,130 @@
 <html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- SEO & Meta Tags -->
-    <title>vyrible - 3D Spatial Audio & Relaxing Sound Mixer</title>
-    <meta name="description" content="vyrible is a free 3D spatial audio mixer. Create your perfect relaxing environment with custom sounds, nature noises, and binaural audioscapes.">
-    <meta name="keywords" content="vyrible, 3D audio, spatial audio, relaxing sounds, noise generator, study music, sleep sounds, binaural beats, sound mixer">
-    <meta name="author" content="vyrible">
-    <meta property="og:title" content="vyrible - 3D Spatial Audio & Relaxing Sound Mixer">
-    <meta property="og:description" content="Immerse yourself in a 3D audio environment. Mix nature sounds or upload your own to relax, study, or sleep.">
-    <meta property="og:image" content="pic.png">
-    <meta property="og:type" content="website">
-    <link rel="icon" href="icon.png" type="image/png">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>vyrible - Minimal 3D Audio</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
         
         body { 
             font-family: 'Inter', sans-serif; 
             margin: 0; 
+            background: #0f1115; 
+            color: #e2e8f0;
             overflow: hidden; 
-            background: #0b0f19; 
-            transition: all 0.3s ease;
+            touch-action: none; /* يمنع التمرير العشوائي عند سحب العناصر */
         }
         
-        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
 
-        /* Enhanced Blurry Glass Panel */
-        .glass-panel {
-            background: rgba(17, 25, 40, 0.35);
-            backdrop-filter: blur(40px);
-            -webkit-backdrop-filter: blur(40px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
-        }
-
+        /* تصميم القماش البسيط */
         .canvas-bg {
-            background-image: repeating-radial-gradient(
-                circle at center,
-                transparent 0,
-                transparent 80px,
-                rgba(255, 255, 255, 0.04) 81px,
-                rgba(255, 255, 255, 0.04) 82px
-            );
+            background-image: radial-gradient(#1e293b 1px, transparent 1px);
+            background-size: 24px 24px;
         }
 
-        .pulse {
-            animation: pulse-ring 3s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+        /* حاويات الألواح */
+        .panel {
+            background: #181b21;
+            border: 1px solid #272c36;
         }
 
-        @keyframes pulse-ring {
-            0% { box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.4); }
-            100% { box-shadow: 0 0 0 50px rgba(45, 212, 191, 0); }
-        }
-
-        .source-node { touch-action: none; user-select: none; background-size: cover; background-position: center; }
-        
         .tab-content { display: none; }
-        .tab-content.active { display: flex; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .tab-content.active { display: flex; animation: fadeIn 0.2s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* تأثيرات العُقد الصوتية */
+        .source-node {
+            touch-action: none;
+            user-select: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            transition: transform 0.1s;
+        }
+        .source-node:active { transform: scale(1.1); }
     </style>
 </head>
-<body class="text-gray-100 h-screen w-screen relative">
+<body class="h-screen w-screen flex flex-col md:flex-row relative">
 
-    <!-- Top Header -->
-    <header class="absolute top-6 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-6 glass-panel px-6 py-3 rounded-[10px]">
-        <h1 class="text-2xl font-bold text-white tracking-wide flex items-center gap-2">
-            <span class="text-teal-400">vyrible</span>
-        </h1>
-    </header>
-
-    <!-- 3D Acoustic Canvas -->
-    <div id="canvas-area" class="absolute inset-0 z-0 canvas-bg flex items-center justify-center">
-        <!-- Listener (Center) -->
-        <div id="listener-node" class="absolute w-16 h-16 bg-white/10 border-2 border-teal-400 rounded-full flex items-center justify-center text-3xl pulse backdrop-blur-md z-10 shadow-[0_0_20px_rgba(45,212,191,0.5)] pointer-events-none" title="You">
-            🎧
-        </div>
-    </div>
-
-    <!-- Left Panel - Library -->
-    <aside id="library-panel" class="absolute top-6 left-6 w-80 glass-panel rounded-[10px] flex flex-col max-h-[calc(100vh-3rem)] z-20">
-        <div class="p-5 border-b border-white/10">
-            <div class="flex gap-2">
-                <button id="tab-btn-basic" class="flex-1 pb-2 border-b-2 border-teal-400 text-teal-400 font-bold transition">Basic</button>
-                <button id="tab-btn-personal" class="flex-1 pb-2 border-b-2 border-transparent text-gray-400 hover:text-gray-200 transition">Personal</button>
+    <!-- اللوحة اليسرى: المكتبة -->
+    <aside id="library-panel" class="panel w-full md:w-80 h-1/4 md:h-full flex flex-col z-20 md:border-r border-b md:border-b-0 order-2 md:order-1 flex-shrink-0">
+        <div class="p-4 border-b border-[#272c36] flex items-center justify-between">
+            <h1 class="text-lg font-semibold text-teal-400">vyrible</h1>
+            <div class="flex gap-4 text-sm font-medium">
+                <button id="tab-btn-basic" class="text-teal-400 border-b-2 border-teal-400 pb-1">Basic</button>
+                <button id="tab-btn-personal" class="text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition">Custom</button>
             </div>
         </div>
 
         <div class="p-4 flex flex-col flex-1 overflow-y-auto">
-            <!-- Tab 1: Basic Sounds -->
-            <div id="tab-basic" class="tab-content active flex-col gap-3">
-                <p class="text-xs text-gray-400 mb-2">Drag and drop into the canvas</p>
-                <div id="basic-library-list" class="flex flex-col gap-3"></div>
+            <!-- الأصوات الأساسية -->
+            <div id="tab-basic" class="tab-content active flex-col gap-2">
+                <p class="text-xs text-gray-500 mb-2">Tap a sound to add it to the room.</p>
+                <div id="basic-library-list" class="flex flex-col gap-2"></div>
             </div>
 
-            <!-- Tab 2: Personal Sounds -->
+            <!-- الأصوات المخصصة -->
             <div id="tab-personal" class="tab-content flex-col gap-4">
-                <!-- Upload Form -->
-                <div class="bg-black/30 p-4 rounded-[10px] border border-white/5 space-y-3">
-                    <h3 class="text-sm font-bold text-teal-300">Add New Sound</h3>
-                    <input type="text" id="custom-name" placeholder="Sound Name (e.g. Lofi)" class="w-full bg-white/5 border border-white/10 rounded-[10px] px-3 py-2 text-sm focus:outline-none focus:border-teal-400">
+                <div class="bg-[#13151a] p-3 rounded-lg border border-[#272c36] space-y-3">
+                    <input type="text" id="custom-name" placeholder="Sound Name..." class="w-full bg-[#1e222b] border border-[#333a45] rounded-md px-3 py-1.5 text-sm focus:outline-none focus:border-teal-500">
                     
-                    <div class="flex gap-4 text-sm">
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="icon-type" value="emoji" checked class="accent-teal-400"> <span>Emoji</span>
-                        </label>
-                        <label class="flex items-center gap-2 cursor-pointer">
-                            <input type="radio" name="icon-type" value="image" class="accent-teal-400"> <span>Image</span>
-                        </label>
+                    <div class="flex gap-4 text-xs">
+                        <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="icon-type" value="emoji" checked class="accent-teal-500"> Emoji</label>
+                        <label class="flex items-center gap-1 cursor-pointer"><input type="radio" name="icon-type" value="image" class="accent-teal-500"> Image</label>
                     </div>
 
-                    <div id="emoji-input-div">
-                        <input type="text" id="custom-emoji" placeholder="🎸" class="w-full bg-white/5 border border-white/10 rounded-[10px] px-3 py-2 text-sm focus:outline-none focus:border-teal-400" maxlength="2">
-                    </div>
-                    
-                    <div id="image-input-div" class="hidden">
-                        <input type="file" id="custom-image" accept="image/*" class="w-full text-xs text-gray-400 file:mr-4 file:py-1 file:px-3 file:rounded-[10px] file:border-0 file:text-xs file:font-semibold file:bg-teal-500/20 file:text-teal-400 hover:file:bg-teal-500/30">
-                    </div>
+                    <div id="emoji-input-div"><input type="text" id="custom-emoji" placeholder="🎧" class="w-full bg-[#1e222b] border border-[#333a45] rounded-md px-3 py-1.5 text-sm focus:outline-none" maxlength="2"></div>
+                    <div id="image-input-div" class="hidden"><input type="file" id="custom-image" accept="image/*" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:bg-[#1e222b] file:text-teal-400"></div>
 
-                    <div>
-                        <label class="block text-xs text-gray-400 mb-1">Audio File (MP3, WAV...)</label>
-                        <input type="file" id="custom-audio" accept="audio/*" class="w-full text-xs text-gray-400 file:mr-4 file:py-1 file:px-3 file:rounded-[10px] file:border-0 file:text-xs file:font-semibold file:bg-teal-500/20 file:text-teal-400 hover:file:bg-teal-500/30">
-                    </div>
-
-                    <button id="add-custom-btn" class="w-full bg-teal-500 hover:bg-teal-400 text-gray-900 font-bold py-2 rounded-[10px] text-sm transition">Add to Library</button>
+                    <input type="file" id="custom-audio" accept="audio/*" class="w-full text-xs text-gray-400 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:bg-[#1e222b] file:text-teal-400">
+                    <button id="add-custom-btn" class="w-full bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 py-1.5 rounded-md text-sm transition">Add Sound</button>
                 </div>
-
-                <div class="h-px w-full bg-white/10 my-2"></div>
-                <p class="text-xs text-gray-400">Your custom sounds</p>
-                <div id="personal-library-list" class="flex flex-col gap-3"></div>
+                <div id="personal-library-list" class="flex flex-col gap-2"></div>
             </div>
         </div>
     </aside>
 
-    <!-- Right Panel - Controls -->
-    <aside id="controls-panel" class="absolute top-6 right-6 w-80 glass-panel rounded-[10px] flex flex-col max-h-[calc(100vh-3rem)] z-20">
-        <div class="p-5 border-b border-white/10">
-            <h2 class="font-semibold text-white tracking-wide flex justify-between items-center">
-                <span>Master Controls</span>
-                <button id="export-btn" class="bg-white/10 hover:bg-white/20 text-xs px-3 py-1.5 rounded-[10px] font-medium transition">Export Mix</button>
-            </h2>
-            <div class="mt-4">
-                <label class="text-xs text-gray-400 flex justify-between mb-2">
-                    <span>Master Volume</span>
-                    <span id="master-vol-val">100%</span>
-                </label>
-                <input type="range" id="master-vol" min="0" max="1" step="0.01" value="1" class="w-full h-1 bg-white/20 rounded-[10px] appearance-none cursor-pointer accent-teal-400">
+    <!-- منطقة المحاكاة ثلاثية الأبعاد (Canvas) -->
+    <main id="canvas-area" class="canvas-bg flex-1 relative order-1 md:order-2 overflow-hidden flex items-center justify-center">
+        <!-- مركز المستمع -->
+        <div id="listener-node" class="absolute w-12 h-12 bg-[#1e222b] border border-teal-500/50 rounded-full flex items-center justify-center text-xl z-10 pointer-events-none" title="You (Listener)">
+            🎧
+        </div>
+    </main>
+
+    <!-- اللوحة اليمنى: التحكم -->
+    <aside id="controls-panel" class="panel w-full md:w-80 h-1/4 md:h-full flex flex-col z-20 md:border-l border-t md:border-t-0 order-3 flex-shrink-0">
+        <div class="p-4 border-b border-[#272c36]">
+            <div class="flex justify-between items-center mb-3">
+                <span class="font-medium text-sm">Master Volume</span>
+                <span id="master-vol-val" class="text-xs text-gray-400">100%</span>
             </div>
+            <input type="range" id="master-vol" min="0" max="1" step="0.01" value="1" class="w-full h-1 bg-[#272c36] rounded-full appearance-none cursor-pointer accent-teal-500">
+            <button id="export-btn" class="mt-4 w-full bg-[#1e222b] hover:bg-[#272c36] text-xs py-2 border border-[#333a45] rounded-md transition text-gray-300">Export Mix (.webm)</button>
         </div>
         
-        <div class="p-5 flex flex-col flex-1 overflow-y-auto">
-            <h3 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-4 flex justify-between items-center">
-                <span>Active Sounds</span>
-                <span id="source-count" class="bg-teal-500/20 text-teal-400 px-2 py-0.5 rounded-[10px] text-xs border border-teal-500/30">0</span>
+        <div class="p-4 flex flex-col flex-1 overflow-y-auto">
+            <h3 class="text-xs font-medium text-gray-500 mb-3 flex justify-between items-center">
+                Active Sounds <span id="source-count" class="bg-[#1e222b] text-teal-400 px-1.5 py-0.5 rounded text-[10px] border border-[#333a45]">0</span>
             </h3>
-            <div id="active-sources-list" class="flex flex-col gap-3">
-                <div class="text-center text-gray-500 text-sm mt-8" id="empty-state">
-                    Your canvas is empty.<br>Start dragging sounds here.
-                </div>
+            <div id="active-sources-list" class="flex flex-col gap-2">
+                <div class="text-center text-gray-600 text-xs mt-6" id="empty-state">Room is empty.</div>
             </div>
         </div>
     </aside>
 
-    <!-- Application Logic -->
+    <!-- الجافا سكريبت -->
     <script>
-        // --- System Data ---
+        // روابط صوتية مفتوحة المصدر وموثوقة لضمان عملها
         const BasicSounds = [
-            { id: 'rain', url: 'https://actions.google.com/sounds/v1/weather/rain_heavy_loud.ogg', color: 'bg-blue-500', icon: '🌧️', label: 'Heavy Rain' },
-            { id: 'wind', url: 'https://actions.google.com/sounds/v1/weather/howling_wind.ogg', color: 'bg-gray-400', icon: '💨', label: 'Strong Wind' },
-            { id: 'ocean', url: 'https://actions.google.com/sounds/v1/water/waves_crashing_on_rock_beach.ogg', color: 'bg-cyan-500', icon: '🌊', label: 'Ocean Waves' },
-            { id: 'birds', url: 'https://actions.google.com/sounds/v1/animals/crows_in_forest.ogg', color: 'bg-emerald-500', icon: '🐦', label: 'Forest Birds' },
-            { id: 'fire', url: 'https://actions.google.com/sounds/v1/ambiences/fire.ogg', color: 'bg-orange-500', icon: '🔥', label: 'Campfire' },
-            { id: 'night', url: 'https://actions.google.com/sounds/v1/animals/crickets_and_insects_at_night.ogg', color: 'bg-indigo-500', icon: '🦗', label: 'Night Insects' }
+            { id: 'rain', url: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Rain_on_a_tin_roof.ogg', color: '#3b82f6', icon: '🌧️', label: 'Rain' },
+            { id: 'wind', url: 'https://upload.wikimedia.org/wikipedia/commons/e/ec/Wind_in_trees.ogg', color: '#9ca3af', icon: '💨', label: 'Wind' },
+            { id: 'ocean', url: 'https://upload.wikimedia.org/wikipedia/commons/3/30/Ocean_waves_-_1.ogg', color: '#06b6d4', icon: '🌊', label: 'Ocean' },
+            { id: 'birds', url: 'https://upload.wikimedia.org/wikipedia/commons/1/15/Bird_vocalization_-_1.ogg', color: '#10b981', icon: '🐦', label: 'Birds' },
+            { id: 'fire', url: 'https://upload.wikimedia.org/wikipedia/commons/a/ae/Campfire_burning.ogg', color: '#f97316', icon: '🔥', label: 'Campfire' },
+            { id: 'night', url: 'https://upload.wikimedia.org/wikipedia/commons/c/c5/Crickets_at_night.ogg', color: '#6366f1', icon: '🦗', label: 'Night' }
         ];
 
         let CustomSounds = {}; 
@@ -185,50 +134,46 @@
             isAudioInitialized: false,
             audioContext: null,
             masterGain: null,
+            compressor: null, // لمنع تشوه الصوت (Clipping)
             sources: new Map(),
             mediaRecorder: null,
             recordedChunks: []
         };
 
         const canvasArea = document.getElementById('canvas-area');
-        const masterVol = document.getElementById('master-vol');
         const activeSourcesList = document.getElementById('active-sources-list');
         const emptyState = document.getElementById('empty-state');
         const sourceCount = document.getElementById('source-count');
 
-        // --- Tabs Logic ---
-        const tabBtnBasic = document.getElementById('tab-btn-basic');
-        const tabBtnPersonal = document.getElementById('tab-btn-personal');
-        const tabBasic = document.getElementById('tab-basic');
-        const tabPersonal = document.getElementById('tab-personal');
+        // نظام التبويبات
+        const tabs = {
+            basic: { btn: document.getElementById('tab-btn-basic'), content: document.getElementById('tab-basic') },
+            personal: { btn: document.getElementById('tab-btn-personal'), content: document.getElementById('tab-personal') }
+        };
 
-        function switchTab(activeBtn, inactiveBtn, activeTab, inactiveTab) {
-            activeBtn.classList.add('border-teal-400', 'text-teal-400');
-            activeBtn.classList.remove('border-transparent', 'text-gray-400');
-            inactiveBtn.classList.remove('border-teal-400', 'text-teal-400');
-            inactiveBtn.classList.add('border-transparent', 'text-gray-400');
-            activeTab.classList.add('active');
-            inactiveTab.classList.remove('active');
+        function switchTab(active) {
+            Object.keys(tabs).forEach(key => {
+                const isMatch = key === active;
+                tabs[key].btn.className = isMatch 
+                    ? "text-teal-400 border-b-2 border-teal-400 pb-1" 
+                    : "text-gray-500 hover:text-gray-300 pb-1 border-b-2 border-transparent transition";
+                tabs[key].content.classList.toggle('active', isMatch);
+            });
         }
+        tabs.basic.btn.onclick = () => switchTab('basic');
+        tabs.personal.btn.onclick = () => switchTab('personal');
 
-        tabBtnBasic.addEventListener('click', () => switchTab(tabBtnBasic, tabBtnPersonal, tabBasic, tabPersonal));
-        tabBtnPersonal.addEventListener('click', () => switchTab(tabBtnPersonal, tabBtnBasic, tabPersonal, tabBasic));
-
-        // --- IndexedDB for Unlimited Storage ---
-        const DB_NAME = 'vyribleDB';
-        const DB_VERSION = 1;
+        // قاعدة البيانات لحفظ الأصوات المخصصة
+        const DB_NAME = 'vyribleDB', DB_VERSION = 1;
         let db;
 
         function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
-                request.onerror = (e) => reject("IndexedDB error");
+                request.onerror = () => reject("IndexedDB error");
                 request.onsuccess = (e) => { db = e.target.result; resolve(db); };
                 request.onupgradeneeded = (e) => {
-                    let db = e.target.result;
-                    if (!db.objectStoreNames.contains('sounds')) {
-                        db.createObjectStore('sounds', { keyPath: 'id' });
-                    }
+                    if (!e.target.result.objectStoreNames.contains('sounds')) e.target.result.createObjectStore('sounds', { keyPath: 'id' });
                 };
             });
         }
@@ -236,256 +181,172 @@
         async function loadCustomSounds() {
             try {
                 await initDB();
-                const transaction = db.transaction(['sounds'], 'readonly');
-                const store = transaction.objectStore('sounds');
-                const request = store.getAll();
-
-                request.onsuccess = (e) => {
-                    const sounds = e.target.result;
-                    sounds.forEach(sound => {
+                const req = db.transaction(['sounds'], 'readonly').objectStore('sounds').getAll();
+                req.onsuccess = (e) => {
+                    e.target.result.forEach(sound => {
                         const audioUrl = URL.createObjectURL(sound.audioBlob);
                         let iconData = sound.icon;
-                        if (iconData.type === 'image' && sound.imageBlob) {
-                            iconData.value = URL.createObjectURL(sound.imageBlob);
-                        }
+                        if (iconData.type === 'image' && sound.imageBlob) iconData.value = URL.createObjectURL(sound.imageBlob);
                         CustomSounds[sound.id] = { ...sound, url: audioUrl, icon: iconData };
                         renderLibraryItem(CustomSounds[sound.id], 'personal-library-list', true);
                     });
                 };
-            } catch(e) {
-                console.error("Failed to load DB sounds", e);
-            }
+            } catch(e) { console.error("DB Load failed", e); }
         }
 
-        function saveCustomSoundToDB(soundData) {
-            if(!db) return;
-            const transaction = db.transaction(['sounds'], 'readwrite');
-            const store = transaction.objectStore('sounds');
-            store.put(soundData);
-        }
+        function saveCustomSoundToDB(data) { if(db) db.transaction(['sounds'], 'readwrite').objectStore('sounds').put(data); }
+        function deleteCustomSoundFromDB(id) { if(db) db.transaction(['sounds'], 'readwrite').objectStore('sounds').delete(id); }
 
-        function deleteCustomSoundFromDB(id) {
-            if(!db) return;
-            const transaction = db.transaction(['sounds'], 'readwrite');
-            const store = transaction.objectStore('sounds');
-            store.delete(id);
-        }
-
-        // --- Custom Sound Form ---
-        const iconTypeRadios = document.getElementsByName('icon-type');
-        const emojiDiv = document.getElementById('emoji-input-div');
-        const imageDiv = document.getElementById('image-input-div');
-
-        iconTypeRadios.forEach(radio => {
-            radio.addEventListener('change', (e) => {
-                if(e.target.value === 'emoji') {
-                    emojiDiv.classList.remove('hidden');
-                    imageDiv.classList.add('hidden');
-                } else {
-                    emojiDiv.classList.add('hidden');
-                    imageDiv.classList.remove('hidden');
-                }
-            });
+        // نموذج رفع الصوت المخصص
+        document.getElementsByName('icon-type').forEach(r => r.onchange = (e) => {
+            document.getElementById('emoji-input-div').classList.toggle('hidden', e.target.value !== 'emoji');
+            document.getElementById('image-input-div').classList.toggle('hidden', e.target.value === 'emoji');
         });
 
-        document.getElementById('add-custom-btn').addEventListener('click', async () => {
-            const name = document.getElementById('custom-name').value || 'Custom Sound';
-            const audioFile = document.getElementById('custom-audio').files[0];
-            const isEmoji = document.querySelector('input[name="icon-type"]:checked').value === 'emoji';
+        document.getElementById('add-custom-btn').onclick = () => {
+            const file = document.getElementById('custom-audio').files[0];
+            if(!file) return alert('Select an audio file');
             
-            if(!audioFile) { alert('Please select an audio file'); return; }
+            const name = document.getElementById('custom-name').value || 'Custom Sound';
+            const isEmoji = document.querySelector('input[name="icon-type"]:checked').value === 'emoji';
+            const id = 'custom_' + Date.now();
+            
+            let iconData = { type: 'emoji', value: isEmoji ? (document.getElementById('custom-emoji').value || '🎵') : '' };
+            let imageBlob = isEmoji ? null : document.getElementById('custom-image').files[0];
 
-            const btn = document.getElementById('add-custom-btn');
-            btn.textContent = "Saving...";
-            btn.disabled = true;
+            const dbRecord = { id, label: name, color: '#a855f7', audioBlob: file, icon: { ...iconData }, imageBlob };
+            saveCustomSoundToDB(dbRecord);
 
-            try {
-                const id = 'custom_' + Date.now();
-                let iconData = { type: 'emoji', value: '🎵' };
-                let imageBlob = null;
+            const audioUrl = URL.createObjectURL(file);
+            if (!isEmoji && imageBlob) iconData.value = URL.createObjectURL(imageBlob);
 
-                if (isEmoji) {
-                    iconData.value = document.getElementById('custom-emoji').value || '🎵';
-                } else {
-                    const imageFile = document.getElementById('custom-image').files[0];
-                    if(imageFile) {
-                        iconData = { type: 'image', value: '' }; 
-                        imageBlob = imageFile;
-                    }
-                }
+            CustomSounds[id] = { id, url: audioUrl, icon: iconData, label: name, color: '#a855f7' };
+            renderLibraryItem(CustomSounds[id], 'personal-library-list', true);
+            document.getElementById('custom-name').value = '';
+        };
 
-                // حفظ الملف بصيغته الأصلية بدون تحويله لـ Base64 لتفادي حدود التخزين
-                const dbRecord = {
-                    id: id,
-                    label: name,
-                    color: 'bg-purple-600',
-                    audioBlob: audioFile,
-                    icon: { type: iconData.type, value: iconData.value },
-                    imageBlob: imageBlob
-                };
-                saveCustomSoundToDB(dbRecord);
-
-                const audioUrl = URL.createObjectURL(audioFile);
-                if (iconData.type === 'image' && imageBlob) {
-                    iconData.value = URL.createObjectURL(imageBlob);
-                }
-
-                CustomSounds[id] = { id: id, url: audioUrl, icon: iconData, label: name, color: 'bg-purple-600' };
-                
-                renderLibraryItem(CustomSounds[id], 'personal-library-list', true);
-                document.getElementById('custom-name').value = '';
-                document.getElementById('custom-audio').value = '';
-                
-            } catch (err) {
-                console.error(err);
-                alert('Error processing file.');
-            }
-
-            btn.textContent = "Add to Library";
-            btn.disabled = false;
-        });
-
-        // --- Render Library Items ---
+        // بناء عناصر المكتبة
         function renderLibraryItem(sound, containerId, isCustom = false) {
             const div = document.createElement('div');
             div.id = `lib-item-${sound.id}`;
-            div.className = "library-item relative bg-white/5 hover:bg-white/10 p-3 rounded-[10px] cursor-grab active:cursor-grabbing border border-white/5 flex items-center gap-3 transition";
-            div.draggable = true;
-            div.dataset.id = sound.id;
-            div.dataset.iscustom = isCustom;
+            div.className = "flex items-center justify-between p-2 rounded-md bg-[#1e222b] hover:bg-[#272c36] border border-[#272c36] cursor-pointer transition";
+            div.onclick = () => addSoundSource(sound); // أصبحت بالإضافة بالضغط المباشر
 
-            let iconHtml = '';
-            if(isCustom && sound.icon.type === 'image') {
-                iconHtml = `<div class="w-10 h-10 rounded-[10px] border border-white/20 bg-cover bg-center" style="background-image: url('${sound.icon.value}')"></div>`;
-            } else {
-                iconHtml = `<div class="w-10 h-10 rounded-[10px] ${sound.color}/20 text-white flex items-center justify-center text-xl shadow-inner border border-white/10">${isCustom ? sound.icon.value : sound.icon}</div>`;
-            }
+            let iconHtml = (isCustom && sound.icon.type === 'image') 
+                ? `<div class="w-8 h-8 rounded bg-cover bg-center" style="background-image: url('${sound.icon.value}')"></div>`
+                : `<div class="w-8 h-8 rounded flex items-center justify-center text-lg shadow-inner" style="background-color: ${sound.color}20; color: ${sound.color}">${isCustom ? sound.icon.value : sound.icon}</div>`;
 
-            div.innerHTML = `
-                ${iconHtml}
-                <span class="font-medium text-sm text-gray-200 w-full">${sound.label}</span>
-            `;
+            div.innerHTML = `<div class="flex items-center gap-3 pointer-events-none">${iconHtml}<span class="text-sm font-medium">${sound.label}</span></div>`;
 
             if(isCustom) {
                 const delBtn = document.createElement('button');
-                delBtn.className = "absolute z-10 text-xs bg-red-500/20 hover:bg-red-500/40 text-red-400 px-2 py-1 rounded-[10px] transition opacity-80 hover:opacity-100 right-2";
-                delBtn.innerText = "🗑️";
-                delBtn.title = "Delete";
-                
-                delBtn.addEventListener('click', (e) => {
-                    e.stopPropagation(); 
-                    deleteCustomSound(sound.id);
-                });
+                delBtn.className = "text-xs text-red-400 p-1 hover:bg-red-400/10 rounded transition";
+                delBtn.innerText = "✕";
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    AppState.sources.forEach((data, sId) => { if(data.data.id === sound.id) removeSourceNode(sId); });
+                    delete CustomSounds[sound.id];
+                    div.remove();
+                    deleteCustomSoundFromDB(sound.id);
+                };
                 div.appendChild(delBtn);
             }
-
-            div.addEventListener('dragstart', (e) => {
-                e.dataTransfer.setData('text/plain', JSON.stringify({id: sound.id, isCustom}));
-                e.dataTransfer.effectAllowed = 'copy';
-                initAudioEngine(); 
-            });
-
             document.getElementById(containerId).appendChild(div);
         }
 
-        // Delete Custom Sounds
-        function deleteCustomSound(id) {
-            // Remove from active canvas if playing
-            AppState.sources.forEach((data, sourceId) => {
-                if(data.data.id === id) {
-                    removeSourceNode(sourceId);
-                }
-            });
-            // Remove from library and storage
-            delete CustomSounds[id];
-            document.getElementById(`lib-item-${id}`).remove();
-            deleteCustomSoundFromDB(id);
-        }
+        BasicSounds.forEach(s => renderLibraryItem(s, 'basic-library-list'));
+        loadCustomSounds();
 
-        // Initialize libraries
-        BasicSounds.forEach(sound => renderLibraryItem(sound, 'basic-library-list', false));
-        loadCustomSounds(); // Loading from DB
-
-        // --- Core Audio Engine ---
+        // المحرك الصوتي الأساسي
         function initAudioEngine() {
             if (AppState.isAudioInitialized) return;
-            const AudioContext = window.AudioContext || window.webkitAudioContext;
-            AppState.audioContext = new AudioContext();
+            AppState.audioContext = new (window.AudioContext || window.webkitAudioContext)();
             AppState.masterGain = AppState.audioContext.createGain();
-            AppState.masterGain.connect(AppState.audioContext.destination);
+            
+            // ضاغط لمنع تشوه الصوت عند تشغيل الكثير من المقاطع
+            AppState.compressor = AppState.audioContext.createDynamicsCompressor();
+            AppState.compressor.threshold.value = -24;
+            AppState.compressor.knee.value = 30;
+            AppState.compressor.ratio.value = 12;
+            AppState.compressor.attack.value = 0.003;
+            AppState.compressor.release.value = 0.25;
+
+            AppState.masterGain.connect(AppState.compressor);
+            AppState.compressor.connect(AppState.audioContext.destination);
             
             const listener = AppState.audioContext.listener;
-            if(listener.positionX) {
-                listener.positionX.value = 0; listener.positionY.value = 0; listener.positionZ.value = 0;
-            } else {
-                listener.setPosition(0, 0, 0);
-            }
+            if(listener.positionX) { listener.positionX.value = 0; listener.positionY.value = 0; listener.positionZ.value = 0; } 
+            else { listener.setPosition(0, 0, 0); }
             AppState.isAudioInitialized = true;
         }
 
-        document.body.addEventListener('pointerdown', () => {
-            if(!AppState.isAudioInitialized) initAudioEngine();
-            if(AppState.audioContext && AppState.audioContext.state === 'suspended') AppState.audioContext.resume();
+        document.addEventListener('pointerdown', () => {
+            initAudioEngine();
+            if(AppState.audioContext?.state === 'suspended') AppState.audioContext.resume();
         }, { once: false });
 
-        masterVol.addEventListener('input', (e) => {
+        document.getElementById('master-vol').oninput = (e) => {
             if(AppState.masterGain) AppState.masterGain.gain.value = parseFloat(e.target.value);
             document.getElementById('master-vol-val').textContent = Math.round(e.target.value * 100) + '%';
-        });
+        };
 
-        function getSoundData(id, isCustom) {
-            return isCustom ? CustomSounds[id] : BasicSounds.find(s => s.id === id);
-        }
+        function addSoundSource(soundData) {
+            initAudioEngine();
+            if(AppState.audioContext.state === 'suspended') AppState.audioContext.resume();
 
-        function createAudioSource(soundData) {
             const ctx = AppState.audioContext;
             const audio = new Audio(soundData.url);
             audio.crossOrigin = "anonymous";
             audio.loop = true;
-            audio.play().catch(e => console.log("Auto-play blocked"));
+            audio.play().catch(() => {});
+            
             const source = ctx.createMediaElementSource(audio);
-            return { sourceNode: audio, outputNode: source };
-        }
-
-        function addSoundSource(soundData, x, y) {
-            const id = 'node-' + Date.now();
-            const ctx = AppState.audioContext;
-            const { sourceNode, outputNode } = createAudioSource(soundData);
             const panner = ctx.createPanner();
             const gainNode = ctx.createGain();
 
-            gainNode.gain.value = 1.5; 
             panner.panningModel = 'HRTF';
             panner.distanceModel = 'inverse';
             panner.refDistance = 1;
-            panner.maxDistance = 10000;
+            panner.maxDistance = 100;
             panner.rolloffFactor = 1;
 
-            outputNode.connect(panner);
-            panner.connect(gainNode);
-            gainNode.connect(AppState.masterGain);
+            source.connect(panner).connect(gainNode).connect(AppState.masterGain);
 
+            const id = 'node-' + Date.now();
             const dot = document.createElement('div');
             dot.id = id;
-            dot.className = `absolute w-14 h-14 rounded-full ${soundData.color} flex items-center justify-center text-2xl cursor-grab shadow-[0_0_20px_rgba(0,0,0,0.6)] transform -translate-x-1/2 -translate-y-1/2 source-node transition-transform hover:scale-110 border-2 border-white/30`;
-            
-            if (soundData.icon && soundData.icon.type === 'image') {
+            dot.className = `absolute w-10 h-10 rounded-full flex items-center justify-center text-lg cursor-grab source-node border-2 border-[#1e222b]`;
+            dot.style.backgroundColor = soundData.color;
+
+            if (soundData.icon?.type === 'image') {
                 dot.style.backgroundImage = `url('${soundData.icon.value}')`;
-                dot.classList.remove(soundData.color); 
-                dot.classList.add('bg-gray-800');
+                dot.style.backgroundSize = 'cover';
+                dot.style.backgroundColor = '#333';
             } else {
                 dot.innerText = soundData.icon.value || soundData.icon;
             }
 
+            // الإضافة في منتصف الشاشة الافتراضي
+            const rect = canvasArea.getBoundingClientRect();
+            let x = rect.width / 2;
+            let y = rect.height / 2;
+            
+            // تحريك عشوائي بسيط لتجنب تكدس العناصر
+            x += (Math.random() - 0.5) * 40;
+            y += (Math.random() - 0.5) * 40;
+
             dot.style.left = `${x}px`;
             dot.style.top = `${y}px`;
+            dot.style.transform = "translate(-50%, -50%)";
             canvasArea.appendChild(dot);
 
-            AppState.sources.set(id, { data: soundData, sourceNode, panner, gainNode, element: dot });
+            AppState.sources.set(id, { data: soundData, sourceNode: audio, panner, gainNode, element: dot });
             updatePannerPosition(id, x, y);
-            setupCanvasDrag(dot);
+            setupNodeDrag(dot);
             addControlPanelItem(id, soundData);
-            updateTierCount();
+            
+            sourceCount.textContent = AppState.sources.size;
+            emptyState.style.display = 'none';
         }
 
         function updatePannerPosition(id, canvasX, canvasY) {
@@ -496,140 +357,106 @@
             const audioX = (canvasX - rect.width / 2) * scale;
             const audioZ = (canvasY - rect.height / 2) * scale;
             if(data.panner.positionX) {
-                data.panner.positionX.value = audioX; data.panner.positionY.value = 0; data.panner.positionZ.value = audioZ;
+                data.panner.positionX.value = audioX; 
+                data.panner.positionY.value = 0; 
+                data.panner.positionZ.value = audioZ;
             } else {
                 data.panner.setPosition(audioX, 0, audioZ); 
             }
         }
 
-        canvasArea.addEventListener('dragover', (e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; });
-
-        canvasArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            const transferData = e.dataTransfer.getData('text/plain');
-            if(!transferData) return;
-            
-            const parsed = JSON.parse(transferData);
-            const soundData = getSoundData(parsed.id, parsed.isCustom);
-            if(!soundData) return;
-
-            const rect = canvasArea.getBoundingClientRect();
-            const safePadding = window.innerWidth > 768 ? 350 : 20; 
-            let x = e.clientX - rect.left;
-            let y = e.clientY - rect.top;
-            
-            x = Math.max(safePadding, Math.min(x, rect.width - safePadding));
-            y = Math.max(60, Math.min(y, rect.height - 40)); 
-
-            if(AppState.audioContext.state === 'suspended') AppState.audioContext.resume();
-            addSoundSource(soundData, x, y);
-        });
-
-        function setupCanvasDrag(element) {
+        // نظام سحب متوافق مع جميع الأجهزة (الهواتف والماوس)
+        function setupNodeDrag(element) {
             let isDragging = false;
-            element.addEventListener('mousedown', () => { 
+            
+            element.addEventListener('pointerdown', (e) => { 
                 isDragging = true; 
-                element.style.cursor = 'grabbing'; 
+                element.style.cursor = 'grabbing';
+                element.setPointerCapture(e.pointerId);
             });
-            window.addEventListener('mousemove', (e) => {
+
+            element.addEventListener('pointermove', (e) => {
                 if (!isDragging) return;
                 const rect = canvasArea.getBoundingClientRect();
                 
-                const safePadding = window.innerWidth > 768 ? 350 : 20; 
-                
-                let newX = Math.max(safePadding, Math.min(e.clientX - rect.left, rect.width - safePadding));
-                let newY = Math.max(80, Math.min(e.clientY - rect.top, rect.height - 20));
+                let newX = Math.max(10, Math.min(e.clientX - rect.left, rect.width - 10));
+                let newY = Math.max(10, Math.min(e.clientY - rect.top, rect.height - 10));
 
                 element.style.left = `${newX}px`;
                 element.style.top = `${newY}px`;
                 updatePannerPosition(element.id, newX, newY);
             });
-            window.addEventListener('mouseup', () => { isDragging = false; element.style.cursor = 'grab'; });
+
+            const stopDrag = (e) => { 
+                isDragging = false; 
+                element.style.cursor = 'grab'; 
+                element.releasePointerCapture(e.pointerId);
+            };
+            
+            element.addEventListener('pointerup', stopDrag);
+            element.addEventListener('pointercancel', stopDrag);
         }
 
-        // --- Controls Panel ---
         function removeSourceNode(id) {
             const data = AppState.sources.get(id);
             if(!data) return;
             data.sourceNode.pause();
-            data.sourceNode.removeAttribute('src'); 
+            data.sourceNode.src = "";
             data.gainNode.disconnect();
             data.element.remove();
-            
-            const controlDiv = document.getElementById(`control-${id}`);
-            if(controlDiv) controlDiv.remove();
+            document.getElementById(`control-${id}`)?.remove();
             
             AppState.sources.delete(id);
-            updateTierCount();
+            sourceCount.textContent = AppState.sources.size;
             if(AppState.sources.size === 0) emptyState.style.display = 'block';
         }
 
         function addControlPanelItem(id, soundData) {
-            emptyState.style.display = 'none';
             const data = AppState.sources.get(id);
-
             const div = document.createElement('div');
             div.id = `control-${id}`;
-            div.className = 'bg-white/5 p-3 rounded-[10px] border border-white/5 flex flex-col gap-3';
+            div.className = 'bg-[#1e222b] p-3 rounded-md border border-[#272c36] flex flex-col gap-2';
             div.innerHTML = `
                 <div class="flex justify-between items-center">
-                    <span class="font-medium text-sm text-gray-200">${soundData.label}</span>
-                    <button class="text-gray-400 hover:text-red-400 text-xs transition delete-btn p-1 bg-white/5 rounded-[10px]">Remove</button>
+                    <span class="text-sm">${soundData.label}</span>
+                    <button class="text-xs text-red-400 hover:bg-red-400/10 p-1 rounded transition del-btn">Remove</button>
                 </div>
-                <div class="flex items-center gap-3">
-                    <input type="range" min="0" max="3" step="0.01" value="1.5" class="flex-1 h-1 bg-white/20 rounded-[10px] appearance-none cursor-pointer accent-teal-400 source-vol">
-                    <span class="text-[10px] text-gray-400 uppercase">Vol</span>
-                </div>
+                <input type="range" min="0" max="2" step="0.01" value="1" class="w-full h-1 bg-[#272c36] rounded appearance-none accent-teal-500 vol-slider">
             `;
-
-            div.querySelector('.source-vol').addEventListener('input', (e) => {
-                data.gainNode.gain.value = parseFloat(e.target.value);
-            });
-
-            div.querySelector('.delete-btn').addEventListener('click', () => removeSourceNode(id));
+            div.querySelector('.vol-slider').oninput = (e) => data.gainNode.gain.value = parseFloat(e.target.value);
+            div.querySelector('.del-btn').onclick = () => removeSourceNode(id);
             activeSourcesList.appendChild(div);
         }
 
-        function updateTierCount() {
-            sourceCount.textContent = AppState.sources.size;
-        }
-
-        // --- Export ---
+        // التصدير للتسجيل
         const exportBtn = document.getElementById('export-btn');
-        exportBtn.addEventListener('click', () => {
+        exportBtn.onclick = () => {
             if (!AppState.isAudioInitialized) return;
 
-            if (AppState.mediaRecorder && AppState.mediaRecorder.state === "recording") {
+            if (AppState.mediaRecorder?.state === "recording") {
                 AppState.mediaRecorder.stop();
-                exportBtn.textContent = "Export Mix";
-                exportBtn.classList.replace('bg-red-500/20', 'bg-white/10');
-                exportBtn.classList.replace('text-red-400', 'text-white');
+                exportBtn.textContent = "Export Mix (.webm)";
+                exportBtn.className = "mt-4 w-full bg-[#1e222b] hover:bg-[#272c36] text-xs py-2 border border-[#333a45] rounded-md transition text-gray-300";
             } else {
                 const dest = AppState.audioContext.createMediaStreamDestination();
-                AppState.masterGain.connect(dest); 
+                AppState.compressor.connect(dest); // تسجيل الصوت مضغوطاً
+                
                 AppState.mediaRecorder = new MediaRecorder(dest.stream);
                 AppState.recordedChunks = [];
-
-                AppState.mediaRecorder.ondataavailable = (e) => {
-                    if (e.data.size > 0) AppState.recordedChunks.push(e.data);
-                };
-
+                AppState.mediaRecorder.ondataavailable = e => { if (e.data.size > 0) AppState.recordedChunks.push(e.data); };
                 AppState.mediaRecorder.onstop = () => {
-                    const blob = new Blob(AppState.recordedChunks, { type: 'audio/webm' });
-                    const url = URL.createObjectURL(blob);
+                    const url = URL.createObjectURL(new Blob(AppState.recordedChunks, { type: 'audio/webm' }));
                     const a = document.createElement('a');
-                    a.style = 'display: none'; a.href = url; a.download = 'vyrible_Mix.webm';
-                    document.body.appendChild(a); a.click();
-                    window.URL.revokeObjectURL(url);
-                    AppState.masterGain.disconnect(dest); 
+                    a.href = url; a.download = 'vyrible_mix.webm';
+                    a.click(); URL.revokeObjectURL(url);
+                    AppState.compressor.disconnect(dest);
                 };
-
+                
                 AppState.mediaRecorder.start();
-                exportBtn.textContent = "Recording... Stop";
-                exportBtn.classList.replace('bg-white/10', 'bg-red-500/20');
-                exportBtn.classList.replace('text-white', 'text-red-400');
+                exportBtn.textContent = "Recording... (Click to Stop)";
+                exportBtn.className = "mt-4 w-full bg-red-500/10 hover:bg-red-500/20 text-xs py-2 border border-red-500/30 rounded-md transition text-red-400";
             }
-        });
+        };
     </script>
 </body>
 </html>
